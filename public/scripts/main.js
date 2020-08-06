@@ -1,39 +1,71 @@
-let vBox = document.getElementById('videoBox');
-let peer = new Peer({
+let vBox = document.getElementById("videoBox");
+let socketPeer = new Peer({
   host: "localhost",
   port: 3000,
   path: "/peerjs",
-  debug: 3,
+  // debug: 3,
 });
 
 let socket = io();
-let conn;
+let selfVideo = document.createElement("video");
+selfVideo.muted = true;
 
-peer.on("open", function (id) {
-  console.log("peer id", id);
-  socket.emit("joined", socket.id, id);
-});
+socketPeer.on("open", () => {});
 
-peer.on("connection", function (conn) {
-  console.log("new connection", conn);
-});
+navigator.mediaDevices
+  .getUserMedia({
+    video: true,
+    audio: true,
+  })
+  .then((stream) => {
+    socket.emit("joined", socket.id, socketPeer.id);
 
-socket.on("joined", (socketId, peerId) => {
-  console.log("socketId", socketId, "peerId", peerId);
-  conn = peer.connect(peerId);
-});
+    // listen for calls
+    socketPeer.on("call", (call) => {
+      console.log(">> incoming call");
 
-// call
-peer.on("call" (stream)=>{
-  let video = document.createElement("video")
+      call.answer(stream);
+      let video = document.createElement("video");
+      call.on("stream", (remoteStream) => {
+        addVideoStream(video, remoteStream);
+      });
+      call.on("close", () => {
+        console.log(">> call ended");
+        video.remove();
+      });
+    });
+
+    // listening for new users
+    socket.on("new-user", (socketId, peerId) => {
+      console.log(">> new-user");
+      connectAndSendStream(peerId, stream);
+    });
+
+    addVideoStream(selfVideo, stream);
+  })
+  .catch(console.error);
+
+function connectAndSendStream(peerId, stream) {
+  let call = socketPeer.call(peerId, stream);
+  console.log(">> connect And Send Stream", stream, call);
+  let video = document.createElement("video");
+
+  call.on("stream", (remoteStream) => {
+    console.log(">> incoming stream");
+    addVideoStream(video, remoteStream);
+  });
+
+  call.on("close", () => {
+    console.log(">> call ended");
+    video.remove();
+  });
+}
+
+function addVideoStream(video, stream) {
+  console.log(">> add Video Stream");
   video.srcObject = stream;
-  vBox.append(video);
-})
-
-// functions
-function makeCall(peerId, video){
-  peer.call(peerId)
-  let video = document.createElement("video")
-  video.srcObject = stream;
+  video.addEventListener("loadedmetadata", () => {
+    video.play();
+  });
   vBox.append(video);
 }
