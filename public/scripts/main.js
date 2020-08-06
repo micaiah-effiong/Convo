@@ -1,3 +1,4 @@
+let vBox = document.getElementById('videoBox');
 let peer = new Peer({
   host: "localhost",
   port: 3000,
@@ -23,5 +24,16 @@ socket.on("joined", (socketId, peerId) => {
 });
 
 // call
-peer.call()
-peer.on("call" (stream)=>{})
+peer.on("call" (stream)=>{
+  let video = document.createElement("video")
+  video.srcObject = stream;
+  vBox.append(video);
+})
+
+// functions
+function makeCall(peerId, video){
+  peer.call(peerId)
+  let video = document.createElement("video")
+  video.srcObject = stream;
+  vBox.append(video);
+}
