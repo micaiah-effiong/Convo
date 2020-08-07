@@ -1,6 +1,6 @@
 let vBox = document.getElementById("videoBox");
 let socketPeer = new Peer({
-  host: "localhost",
+  host: location.hostname,
   port: 3000,
   path: "/peerjs",
   // debug: 3,
@@ -11,6 +11,10 @@ let selfVideo = document.createElement("video");
 selfVideo.muted = true;
 
 socketPeer.on("open", () => {});
+
+socket.on("disconnect", (socketId, peerId) => {
+  console.log("disconnect", socketId, peerId);
+});
 
 navigator.mediaDevices
   .getUserMedia({
@@ -50,14 +54,14 @@ function connectAndSendStream(peerId, stream) {
   console.log(">> connect And Send Stream", stream, call);
   let video = document.createElement("video");
 
-  call.on("stream", (remoteStream) => {
-    console.log(">> incoming stream");
-    addVideoStream(video, remoteStream);
-  });
-
   call.on("close", () => {
     console.log(">> call ended");
     video.remove();
+  });
+
+  call.on("stream", (remoteStream) => {
+    console.log(">> incoming stream");
+    addVideoStream(video, remoteStream);
   });
 }
 
