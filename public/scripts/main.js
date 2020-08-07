@@ -14,6 +14,7 @@ socketPeer.on("open", () => {});
 
 socket.on("disconnect", (socketId, peerId) => {
   console.log("disconnect", socketId, peerId);
+  socketPeer.connections[peerId][0].close();
 });
 
 navigator.mediaDevices
@@ -26,22 +27,21 @@ navigator.mediaDevices
 
     // listen for calls
     socketPeer.on("call", (call) => {
-      console.log(">> incoming call");
-
+      // console.log(">> incoming call", call);
       call.answer(stream);
       let video = document.createElement("video");
       call.on("stream", (remoteStream) => {
         addVideoStream(video, remoteStream);
       });
       call.on("close", () => {
-        console.log(">> call ended");
+        // console.log(">> call ended");
         video.remove();
       });
     });
 
     // listening for new users
     socket.on("new-user", (socketId, peerId) => {
-      console.log(">> new-user");
+      // console.log(">> new-user");
       connectAndSendStream(peerId, stream);
     });
 
@@ -51,22 +51,24 @@ navigator.mediaDevices
 
 function connectAndSendStream(peerId, stream) {
   let call = socketPeer.call(peerId, stream);
-  console.log(">> connect And Send Stream", stream, call);
+  testCall = call;
+
+  // console.log(">> connect And Send Stream", stream, call);
   let video = document.createElement("video");
 
   call.on("close", () => {
-    console.log(">> call ended");
+    // console.log(">> call ended");
     video.remove();
   });
 
   call.on("stream", (remoteStream) => {
-    console.log(">> incoming stream");
+    // console.log(">> incoming stream");
     addVideoStream(video, remoteStream);
   });
 }
 
 function addVideoStream(video, stream) {
-  console.log(">> add Video Stream");
+  // console.log(">> add Video Stream");
   video.srcObject = stream;
   video.addEventListener("loadedmetadata", () => {
     video.play();
