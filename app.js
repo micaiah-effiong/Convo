@@ -1,20 +1,30 @@
 require("dotenv").config();
-var http = require("http");
+var https = require("https");
 const { ExpressPeerServer } = require("peer");
 var express = require("express");
 var path = require("path");
 var cookieParser = require("cookie-parser");
 var logger = require("morgan");
+let fs = require("fs");
 let io = require("./io");
 
 var indexRouter = require("./routes/index");
 
 var app = express();
 
+// pem
+const key = fs.readFileSync("./cert/key.pem"); //private key
+const cert = fs.readFileSync("./cert/certificate.pem"); // certificate
+
+const credentials = {
+  key,
+  cert,
+};
+
 /**
  * Create HTTP server.
  */
-var server = http.createServer(app);
+var server = https.createServer(credentials, app);
 io.attach(server);
 const peerServer = ExpressPeerServer(server, {
   debug: true,
