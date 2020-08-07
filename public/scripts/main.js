@@ -51,7 +51,6 @@ navigator.mediaDevices
 
 function connectAndSendStream(peerId, stream) {
   let call = socketPeer.call(peerId, stream);
-  testCall = call;
 
   // console.log(">> connect And Send Stream", stream, call);
   let video = document.createElement("video");
